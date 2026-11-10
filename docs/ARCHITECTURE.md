@@ -224,6 +224,12 @@ observation for reversing.
   show errors in files you do not own — only your own files must be clean.
 * Do not run `git commit`, `git add`, `git stash`, `git checkout` or any other
   git command that changes the repository or index; the coordinator commits.
+* Browser-side modules are checked with a harness page under `dev/` (for
+  example `dev/ui-gallery.html` + `dev/ui-gallery.ts`). Vite's dev server serves
+  them, they are type-checked, and they are not part of the production build.
+  Headless Chromium with Playwright is available (`require('playwright')`,
+  WebGL works) for screenshots; write throw-away scripts and screenshots to
+  `.tmp/` (git-ignored).
 * Keep modules small and documented where the logic is not obvious. Prefer
   plain functions and data over class hierarchies.
 * Road-safety content must be correct. If you are not sure a rule is right for

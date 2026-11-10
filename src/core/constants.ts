@@ -31,3 +31,8 @@ export const PLAYER_SPEC: VehicleSpec = {
 
 /** |speed| below this counts as stopped, m/s. */
 export const STOPPED_SPEED = 0.15;
+
+/** Indicator flash cycle, seconds. Use `blinkOn` everywhere so lights and ticking stay in sync. */
+export const INDICATOR_PERIOD = 0.7;
+/** True during the lit half of the indicator flash cycle at simulation time `t`. */
+export const blinkOn = (t: number): boolean => t % INDICATOR_PERIOD < INDICATOR_PERIOD / 2;

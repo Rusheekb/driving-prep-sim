@@ -705,6 +705,8 @@ export interface StaticObstacle {
   kind: 'cone' | 'building' | 'tree' | 'pole' | 'barrier';
   obb: Obb;
   height: number;
+  /** Set once the player has struck it (cones are knocked over and stop being solid). */
+  hit?: boolean;
 }
 
 /* ========================================================================== */
