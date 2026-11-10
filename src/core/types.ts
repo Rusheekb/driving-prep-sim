@@ -1033,6 +1033,14 @@ export interface ScenarioMeta {
   briefing: string[];
   /** Order within its category on the menu. */
   order: number;
+  /** True for mock tests: pass/fail under the jurisdiction's marking scheme. Practice scenarios only earn stars. */
+  assessed?: boolean;
+  /** Session options this scenario dictates (e.g. the night lesson forces `timeOfDay: 'night'`); the briefing screen locks them. */
+  forced?: Partial<SessionSettings>;
+  /** Suggested defaults for options the learner may still change. */
+  defaults?: Partial<SessionSettings>;
+  /** False when no instructor demonstration (autopilot) is available for this scenario. */
+  hasDemo?: boolean;
 }
 
 /** Live state of the running scenario, read by the HUD, renderer and app. */
@@ -1124,6 +1132,12 @@ export interface SimEvents {
   horn: {};
   /** A signalised junction changed state (for AI/render hooks). */
   signal: { nodeId: string };
+  /**
+   * An AI vehicle had to brake firmly (≥ ~3 m/s²). `forPlayer` is true when the
+   * player's car was the obstacle it reacted to. Used by the rule monitor as
+   * supporting evidence for right-of-way faults.
+   */
+  aiBrake: { vehicleId: number; decel: number; forPlayer: boolean };
 }
 
 export interface EventBus<E> {
@@ -1199,6 +1213,8 @@ export interface ProgressData {
   /** Count of faults by code across all sessions, for "things to work on". */
   faultCounts: Partial<Record<FaultCode, number>>;
   theory: TheoryResult[];
+  /** Ids of theory questions answered wrongly and not yet answered correctly since (for "review my mistakes"). */
+  theoryMissed?: string[];
   /** Totals for fun stats. */
   totals: { sessions: number; distanceM: number; timeS: number };
 }

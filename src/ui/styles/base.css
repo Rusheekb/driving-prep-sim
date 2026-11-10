@@ -1,0 +1,512 @@
+/* ==========================================================================
+   Learner Lane — base layer
+   Reset, document defaults, typography, focus, scrollbars, selection and
+   layout/text utilities. Everything is prefixed `ll-`.
+   ========================================================================== */
+
+/* ---- Reset --------------------------------------------------------------- */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  /* The whole UI is sized in rem, so one variable scales everything. */
+  font-size: calc(16px * var(--text-scale, 1));
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  -webkit-tap-highlight-color: transparent;
+  scrollbar-color: var(--ll-border-strong) transparent;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--ll-bg);
+  color: var(--ll-text);
+  font-family: var(--ll-font-sans);
+  font-size: var(--ll-text-md);
+  line-height: var(--ll-leading-normal);
+  font-weight: var(--ll-weight-regular);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p,
+figure,
+blockquote,
+dl,
+dd {
+  margin: 0;
+}
+
+ul[class],
+ol[class] {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+img,
+svg,
+canvas,
+video {
+  display: block;
+  max-width: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  color: inherit;
+  letter-spacing: inherit;
+  margin: 0;
+}
+
+button {
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+  touch-action: manipulation;
+}
+
+button:disabled,
+[aria-disabled='true'] {
+  cursor: not-allowed;
+}
+
+a {
+  color: var(--ll-accent);
+  text-decoration-thickness: 0.08em;
+  text-underline-offset: 0.2em;
+}
+a:hover {
+  color: var(--ll-accent-hover);
+}
+
+[hidden] {
+  display: none !important;
+}
+
+/* ---- Typography ---------------------------------------------------------- */
+h1,
+h2,
+h3,
+h4 {
+  font-weight: var(--ll-weight-black);
+  line-height: var(--ll-leading-tight);
+  letter-spacing: var(--ll-tracking-tight);
+  text-wrap: balance;
+}
+h1 {
+  font-size: var(--ll-text-3xl);
+}
+h2 {
+  font-size: var(--ll-text-2xl);
+}
+h3 {
+  font-size: var(--ll-text-xl);
+  font-weight: var(--ll-weight-bold);
+}
+h4 {
+  font-size: var(--ll-text-lg);
+  font-weight: var(--ll-weight-bold);
+  letter-spacing: -0.01em;
+}
+p {
+  text-wrap: pretty;
+}
+strong,
+b {
+  font-weight: var(--ll-weight-bold);
+}
+small {
+  font-size: var(--ll-text-sm);
+}
+code,
+kbd,
+samp {
+  font-family: var(--ll-font-mono);
+  font-size: 0.9em;
+}
+
+.ll-display {
+  font-size: var(--ll-text-4xl);
+  font-weight: var(--ll-weight-black);
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+.ll-h1 {
+  font-size: var(--ll-text-3xl);
+  font-weight: var(--ll-weight-black);
+  line-height: var(--ll-leading-tight);
+  letter-spacing: var(--ll-tracking-tight);
+}
+.ll-h2 {
+  font-size: var(--ll-text-2xl);
+  font-weight: var(--ll-weight-black);
+  line-height: var(--ll-leading-tight);
+  letter-spacing: var(--ll-tracking-tight);
+}
+.ll-h3 {
+  font-size: var(--ll-text-xl);
+  font-weight: var(--ll-weight-bold);
+  line-height: var(--ll-leading-snug);
+  letter-spacing: -0.015em;
+}
+.ll-h4 {
+  font-size: var(--ll-text-lg);
+  font-weight: var(--ll-weight-bold);
+  line-height: var(--ll-leading-snug);
+  letter-spacing: -0.01em;
+}
+.ll-lead {
+  font-size: var(--ll-text-lg);
+  line-height: 1.45;
+  color: var(--ll-text-muted);
+}
+.ll-body {
+  font-size: var(--ll-text-md);
+  line-height: var(--ll-leading-normal);
+}
+.ll-small {
+  font-size: var(--ll-text-sm);
+  line-height: 1.45;
+}
+.ll-caption {
+  font-size: var(--ll-text-xs);
+  line-height: 1.4;
+  color: var(--ll-text-muted);
+}
+/* Road-sign style micro label: bold, uppercase, tracked. */
+.ll-eyebrow {
+  font-size: var(--ll-text-xs);
+  font-weight: var(--ll-weight-bold);
+  line-height: 1.2;
+  letter-spacing: var(--ll-tracking-label);
+  text-transform: uppercase;
+  color: var(--ll-text-muted);
+}
+.ll-eyebrow--accent {
+  color: var(--ll-accent);
+}
+/* Numerals that must not jiggle (speed, timers, scores). */
+.ll-num {
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: 'tnum' 1, 'lnum' 1;
+}
+.ll-mono {
+  font-family: var(--ll-font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.ll-text-muted {
+  color: var(--ll-text-muted);
+}
+.ll-text-subtle {
+  color: var(--ll-text-subtle);
+}
+.ll-text-accent {
+  color: var(--ll-accent);
+}
+.ll-text-good {
+  color: var(--ll-good-text);
+}
+.ll-text-warn {
+  color: var(--ll-warn-text);
+}
+.ll-text-bad {
+  color: var(--ll-bad-text);
+}
+.ll-text-info {
+  color: var(--ll-info-text);
+}
+.ll-text-center {
+  text-align: center;
+}
+.ll-text-end {
+  text-align: end;
+}
+.ll-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+.ll-nowrap {
+  white-space: nowrap;
+}
+.ll-prose {
+  max-width: 68ch;
+}
+.ll-prose > * + * {
+  margin-top: var(--ll-space-3);
+}
+
+/* ---- Focus --------------------------------------------------------------- */
+:focus {
+  outline: none;
+}
+:focus-visible {
+  outline: var(--ll-focus-width) solid var(--ll-focus);
+  outline-offset: var(--ll-focus-offset);
+  border-radius: var(--ll-radius-xs);
+}
+/* Headings, screens and dialogs that are focused programmatically (so that a
+   screen reader starts reading from them) do not draw a ring. */
+:is(h1, h2, h3, [role='heading'], .ll-screen, .ll-modal)[tabindex='-1']:focus-visible {
+  outline: none;
+}
+
+::selection {
+  background: var(--ll-selection);
+  color: var(--ll-text);
+}
+
+/* ---- Scrollbars ---------------------------------------------------------- */
+.ll-scroll,
+.ll-screen,
+.ll-modal__body {
+  scrollbar-width: thin;
+  scrollbar-color: var(--ll-border-strong) transparent;
+}
+::-webkit-scrollbar {
+  width: 12px;
+  height: 12px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--ll-border-strong);
+  border-radius: var(--ll-radius-pill);
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--ll-border-control);
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+.ll-scroll {
+  overflow: auto;
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain;
+}
+
+/* ---- Accessibility helpers ------------------------------------------------ */
+.ll-sr-only {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  margin: -1px !important;
+  padding: 0 !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  clip-path: inset(50%) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+/* "Skip to content" style link: hidden until focused. */
+.ll-skip-link {
+  position: fixed;
+  top: var(--ll-space-2);
+  left: var(--ll-space-2);
+  z-index: calc(var(--ll-z-toast) + 1);
+  padding: var(--ll-space-2) var(--ll-space-4);
+  background: var(--ll-accent);
+  color: var(--ll-on-accent);
+  font-weight: var(--ll-weight-bold);
+  border-radius: var(--ll-radius-sm);
+  transform: translateY(-200%);
+}
+.ll-skip-link:focus {
+  transform: none;
+}
+
+/* ---- Layout utilities ------------------------------------------------------
+   .ll-stack      vertical flow with a gap            (--ll-gap, default space-4)
+   .ll-row        horizontal flex row, centred        (--ll-gap, default space-3)
+   .ll-grid-auto  responsive auto-fill grid           (--ll-min, default 16rem)
+   Modifiers: --xs --sm --lg --xl gaps, .ll-row--wrap/--between/--end/--top.
+   -------------------------------------------------------------------------- */
+.ll-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ll-gap, var(--ll-space-4));
+  min-width: 0;
+}
+.ll-row {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: var(--ll-gap, var(--ll-space-3));
+  min-width: 0;
+}
+.ll-row--wrap {
+  flex-wrap: wrap;
+}
+.ll-row--between {
+  justify-content: space-between;
+}
+.ll-row--center {
+  justify-content: center;
+}
+.ll-row--end {
+  justify-content: flex-end;
+}
+.ll-row--top {
+  align-items: flex-start;
+}
+.ll-row--baseline {
+  align-items: baseline;
+}
+.ll-row--stretch {
+  align-items: stretch;
+}
+.ll-stack--xs,
+.ll-row--xs {
+  --ll-gap: var(--ll-space-1);
+}
+.ll-stack--sm,
+.ll-row--sm {
+  --ll-gap: var(--ll-space-2);
+}
+.ll-stack--md,
+.ll-row--md {
+  --ll-gap: var(--ll-space-4);
+}
+.ll-stack--lg,
+.ll-row--lg {
+  --ll-gap: var(--ll-space-6);
+}
+.ll-stack--xl,
+.ll-row--xl {
+  --ll-gap: var(--ll-space-10);
+}
+.ll-grid-auto {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(var(--ll-min, 16rem), 100%), 1fr));
+  gap: var(--ll-gap, var(--ll-space-4));
+}
+.ll-grow {
+  flex: 1 1 0%;
+  min-width: 0;
+}
+.ll-shrink-0 {
+  flex-shrink: 0;
+}
+.ll-center {
+  display: grid;
+  place-items: center;
+}
+.ll-full {
+  width: 100%;
+}
+.ll-hide {
+  display: none !important;
+}
+/* Responsive visibility helpers. */
+@media (max-width: 599.98px) {
+  .ll-hide-narrow {
+    display: none !important;
+  }
+}
+@media (min-width: 600px) {
+  .ll-only-narrow {
+    display: none !important;
+  }
+}
+@media (max-height: 479.98px) {
+  .ll-hide-short {
+    display: none !important;
+  }
+}
+
+/* ---- App shell ---------------------------------------------------------------
+   Put .ll-app on <body> (or the #app root) of the game page: it pins the page
+   to the viewport, removes scrolling/zoom gestures and text selection so the
+   canvas, HUD and touch controls behave like a game. Screens scroll internally.
+   -------------------------------------------------------------------------- */
+.ll-app {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+}
+.ll-app input,
+.ll-app textarea,
+.ll-selectable {
+  -webkit-user-select: text;
+  user-select: text;
+}
+.ll-layer-canvas {
+  position: absolute;
+  inset: 0;
+  z-index: var(--ll-z-canvas);
+}
+.ll-layer-hud {
+  position: absolute;
+  inset: 0;
+  z-index: var(--ll-z-hud);
+  pointer-events: none;
+}
+.ll-layer-touch {
+  position: absolute;
+  inset: 0;
+  z-index: var(--ll-z-touch);
+  pointer-events: none;
+}
+.ll-layer-hud > *,
+.ll-layer-touch > * {
+  pointer-events: auto;
+}
+
+/* ---- Reduced motion (catch-all) ------------------------------------------------
+   Applies to every element — including styles written by other modules.
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-delay: 0s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    transition-delay: 0s !important;
+    scroll-behavior: auto !important;
+  }
+}
+:root[data-reduced-motion='true'] *,
+:root[data-reduced-motion='true'] *::before,
+:root[data-reduced-motion='true'] *::after {
+  animation-duration: 0.01ms !important;
+  animation-delay: 0s !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  transition-delay: 0s !important;
+  scroll-behavior: auto !important;
+}
+
+/* ---- Forced colours (Windows contrast themes) -------------------------------- */
+@media (forced-colors: active) {
+  :focus-visible {
+    outline-color: Highlight;
+  }
+}

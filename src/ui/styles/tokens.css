@@ -1,0 +1,325 @@
+/* ==========================================================================
+   Learner Lane — design tokens
+   --------------------------------------------------------------------------
+   Every colour, size, radius, shadow, layer and duration used by the UI kit
+   is a custom property defined here. Components never hard-code these values,
+   so themes (high contrast) and user preferences (text scale, reduced motion)
+   are applied by switching tokens on <html>:
+
+     <html style="--text-scale: 1.2">        UI text scale (0.85 – 1.4)
+     <html data-contrast="high">             high-contrast theme
+     <html data-reduced-motion="true">       no motion (also honoured via the
+                                             prefers-reduced-motion media query)
+
+   `applyUiPrefs()` in src/ui/dom.ts sets all three from AppSettings.
+   ========================================================================== */
+
+:root {
+  color-scheme: dark;
+
+  /* ---- Typography ------------------------------------------------------ */
+  --text-scale: 1;
+
+  --ll-font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --ll-font-mono: ui-monospace, "SF Mono", SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+
+  /* Modular scale (rem → follows --text-scale). */
+  --ll-text-2xs: 0.6875rem; /* 11 px — micro labels only */
+  --ll-text-xs: 0.75rem; /*   12 px */
+  --ll-text-sm: 0.875rem; /*  14 px */
+  --ll-text-md: 1rem; /*      16 px — body */
+  --ll-text-lg: 1.125rem; /*  18 px */
+  --ll-text-xl: 1.375rem; /*  22 px */
+  --ll-text-2xl: 1.75rem; /*  28 px */
+  --ll-text-3xl: 2.25rem; /*  36 px */
+  --ll-text-4xl: clamp(2.5rem, 1.6rem + 3.2vw, 3.75rem); /* display */
+
+  --ll-leading-tight: 1.12;
+  --ll-leading-snug: 1.3;
+  --ll-leading-normal: 1.5;
+
+  --ll-weight-regular: 400;
+  --ll-weight-medium: 500;
+  --ll-weight-semibold: 600;
+  --ll-weight-bold: 700;
+  --ll-weight-black: 800;
+
+  --ll-tracking-tight: -0.02em;
+  --ll-tracking-label: 0.1em; /* uppercase micro labels */
+
+  /* ---- Spacing (4 px grid, rem based) ---------------------------------- */
+  --ll-space-0: 0;
+  --ll-space-1: 0.25rem;
+  --ll-space-2: 0.5rem;
+  --ll-space-3: 0.75rem;
+  --ll-space-4: 1rem;
+  --ll-space-5: 1.25rem;
+  --ll-space-6: 1.5rem;
+  --ll-space-8: 2rem;
+  --ll-space-10: 2.5rem;
+  --ll-space-12: 3rem;
+  --ll-space-16: 4rem;
+
+  /* ---- Shape ----------------------------------------------------------- */
+  --ll-radius-xs: 6px;
+  --ll-radius-sm: 8px;
+  --ll-radius-md: 12px;
+  --ll-radius-lg: 16px;
+  --ll-radius-xl: 24px;
+  --ll-radius-pill: 999px;
+
+  --ll-border-width: 1px;
+  --ll-control-border-width: 1.5px;
+  --ll-focus-width: 3px;
+  --ll-focus-offset: 2px;
+
+  /* Minimum touch target (never scales below 44 CSS px). */
+  --ll-touch: max(2.75rem, 44px);
+  --ll-content-max: 72rem;
+
+  /* ---- Colour: night asphalt ------------------------------------------- */
+  --ll-bg: #0c1220;
+  --ll-surface-1: #131b2e;
+  --ll-surface-2: #1b2540;
+  --ll-surface-3: #26335a;
+  --ll-surface-inset: #0a0f1b;
+  /* Frosted panel placed over the 3D scene (pair with --ll-blur). */
+  --ll-glass: rgba(14, 20, 36, 0.86);
+  /* Scrim behind overlay screens and modals. */
+  --ll-scrim: rgba(5, 8, 16, 0.72);
+  --ll-blur: 14px;
+
+  --ll-border: #263250;
+  --ll-border-strong: #3a4970;
+  --ll-border-control: #6577a6; /* ≥ 3:1 on every surface */
+  --ll-highlight: rgba(255, 255, 255, 0.06); /* 1 px inner top highlight */
+
+  --ll-text: #f4f6fb;
+  --ll-text-muted: #aab4cf;
+  --ll-text-subtle: #8794b6;
+  --ll-text-disabled: #6b7694;
+
+  /* Brand: lane-marking / L-plate yellow. */
+  --ll-accent: #ffd23f;
+  --ll-accent-hover: #ffdd6b;
+  --ll-accent-active: #f2c022;
+  --ll-accent-soft: #2c2713; /* tinted surface */
+  --ll-accent-border: #7d6a1f;
+  --ll-on-accent: #161b2b;
+  --ll-lane: #ffd23f; /* dashed centre-line motif */
+  --ll-lane-dim: #3a4567; /* un-driven lane markings (tracks) */
+
+  /* Semantic colours — from signals and signs.
+     *-text    readable on any dark surface (≥ 4.5:1)
+     *-surface tinted solid surface
+     *-border  tinted hairline
+     *-solid   filled background that carries --ll-on-* text */
+  --ll-good: #2fbf71;
+  --ll-good-text: #5fdc98;
+  --ll-good-surface: #10291f;
+  --ll-good-border: #1f6e47;
+  --ll-good-solid: #2fbf71;
+  --ll-on-good: #06200f;
+
+  --ll-warn: #ffb020;
+  --ll-warn-text: #ffc355;
+  --ll-warn-surface: #2e2410;
+  --ll-warn-border: #7a5a14;
+  --ll-warn-solid: #ffb020;
+  --ll-on-warn: #231700;
+
+  --ll-bad: #f0555a;
+  --ll-bad-text: #ff8a8d;
+  --ll-bad-surface: #33161b;
+  --ll-bad-border: #8a2c33;
+  --ll-bad-solid: #cf2f35;
+  --ll-on-bad: #ffffff;
+
+  --ll-info: #4da3ff;
+  --ll-info-text: #8cc4ff;
+  --ll-info-surface: #11243f;
+  --ll-info-border: #24528c;
+  --ll-info-solid: #4da3ff;
+  --ll-on-info: #04182f;
+
+  --ll-focus: #ffd23f;
+  --ll-focus-halo: #0c1220; /* dark gap between a control and its focus ring */
+  --ll-selection: rgba(255, 210, 63, 0.3);
+
+  /* Current tone (set by [data-tone]; neutral by default). */
+  --ll-tone: var(--ll-text-muted);
+  --ll-tone-text: var(--ll-text);
+  --ll-tone-surface: var(--ll-surface-2);
+  --ll-tone-border: var(--ll-border-strong);
+  --ll-tone-solid: var(--ll-surface-3);
+  --ll-tone-on: var(--ll-text);
+
+  /* ---- Elevation ------------------------------------------------------- */
+  --ll-shadow-1: 0 1px 2px rgba(0, 0, 0, 0.35), 0 2px 8px -2px rgba(0, 0, 0, 0.35);
+  --ll-shadow-2: 0 2px 4px rgba(0, 0, 0, 0.3), 0 12px 28px -10px rgba(0, 0, 0, 0.6);
+  --ll-shadow-3: 0 4px 8px rgba(0, 0, 0, 0.3), 0 28px 64px -16px rgba(0, 0, 0, 0.75);
+  --ll-shadow-accent: 0 8px 22px -10px rgba(255, 210, 63, 0.55);
+  --ll-inset-highlight: inset 0 1px 0 var(--ll-highlight);
+
+  /* ---- Layers ---------------------------------------------------------- */
+  --ll-z-canvas: 0;
+  --ll-z-hud: 10;
+  --ll-z-touch: 20;
+  --ll-z-screens: 30;
+  --ll-z-modal: 40;
+  --ll-z-toast: 50;
+
+  /* ---- Motion ---------------------------------------------------------- */
+  --ll-dur-fast: 120ms;
+  --ll-dur: 180ms;
+  --ll-dur-slow: 240ms;
+  --ll-ease: cubic-bezier(0.2, 0, 0, 1);
+  --ll-ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ll-ease-in: cubic-bezier(0.4, 0, 1, 1);
+}
+
+/* --------------------------------------------------------------------------
+   Tones. Components always write data-tone (including "neutral"), so a
+   neutral chip inside a green banner does not inherit the banner's tone.
+   -------------------------------------------------------------------------- */
+[data-tone='neutral'] {
+  --ll-tone: var(--ll-text-muted);
+  --ll-tone-text: var(--ll-text);
+  --ll-tone-surface: var(--ll-surface-2);
+  --ll-tone-border: var(--ll-border-strong);
+  --ll-tone-solid: var(--ll-surface-3);
+  --ll-tone-on: var(--ll-text);
+}
+[data-tone='accent'] {
+  --ll-tone: var(--ll-accent);
+  --ll-tone-text: var(--ll-accent);
+  --ll-tone-surface: var(--ll-accent-soft);
+  --ll-tone-border: var(--ll-accent-border);
+  --ll-tone-solid: var(--ll-accent);
+  --ll-tone-on: var(--ll-on-accent);
+}
+[data-tone='info'] {
+  --ll-tone: var(--ll-info);
+  --ll-tone-text: var(--ll-info-text);
+  --ll-tone-surface: var(--ll-info-surface);
+  --ll-tone-border: var(--ll-info-border);
+  --ll-tone-solid: var(--ll-info-solid);
+  --ll-tone-on: var(--ll-on-info);
+}
+[data-tone='good'] {
+  --ll-tone: var(--ll-good);
+  --ll-tone-text: var(--ll-good-text);
+  --ll-tone-surface: var(--ll-good-surface);
+  --ll-tone-border: var(--ll-good-border);
+  --ll-tone-solid: var(--ll-good-solid);
+  --ll-tone-on: var(--ll-on-good);
+}
+[data-tone='warn'] {
+  --ll-tone: var(--ll-warn);
+  --ll-tone-text: var(--ll-warn-text);
+  --ll-tone-surface: var(--ll-warn-surface);
+  --ll-tone-border: var(--ll-warn-border);
+  --ll-tone-solid: var(--ll-warn-solid);
+  --ll-tone-on: var(--ll-on-warn);
+}
+[data-tone='bad'] {
+  --ll-tone: var(--ll-bad);
+  --ll-tone-text: var(--ll-bad-text);
+  --ll-tone-surface: var(--ll-bad-surface);
+  --ll-tone-border: var(--ll-bad-border);
+  --ll-tone-solid: var(--ll-bad-solid);
+  --ll-tone-on: var(--ll-on-bad);
+}
+
+/* --------------------------------------------------------------------------
+   High-contrast theme: pure black surfaces, white text and borders, thicker
+   borders and focus rings. Tinted surfaces collapse to black so that tone is
+   carried by the (bright) border, icon and label.
+   -------------------------------------------------------------------------- */
+:root[data-contrast='high'] {
+  --ll-bg: #000000;
+  --ll-surface-1: #000000;
+  --ll-surface-2: #0b0b0b;
+  --ll-surface-3: #262626;
+  --ll-surface-inset: #000000;
+  --ll-glass: #000000;
+  --ll-scrim: rgba(0, 0, 0, 0.92);
+  --ll-blur: 0px;
+
+  --ll-border: #ffffff;
+  --ll-border-strong: #ffffff;
+  --ll-border-control: #ffffff;
+  --ll-highlight: transparent;
+  --ll-border-width: 2px;
+  --ll-control-border-width: 2px;
+  --ll-focus-width: 4px;
+  --ll-focus-offset: 3px;
+
+  --ll-text: #ffffff;
+  --ll-text-muted: #ffffff;
+  --ll-text-subtle: #e6e6e6;
+  --ll-text-disabled: #b3b3b3;
+
+  --ll-accent: #ffe14d;
+  --ll-accent-hover: #fff0a3;
+  --ll-accent-active: #ffd400;
+  --ll-accent-soft: #000000;
+  --ll-accent-border: #ffe14d;
+  --ll-on-accent: #000000;
+  --ll-lane: #ffe14d;
+  --ll-lane-dim: #8c8c8c;
+
+  --ll-good: #3ee08a;
+  --ll-good-text: #6fffb0;
+  --ll-good-surface: #000000;
+  --ll-good-border: #6fffb0;
+  --ll-good-solid: #3ee08a;
+  --ll-on-good: #000000;
+
+  --ll-warn: #ffc04d;
+  --ll-warn-text: #ffd480;
+  --ll-warn-surface: #000000;
+  --ll-warn-border: #ffd480;
+  --ll-warn-solid: #ffc04d;
+  --ll-on-warn: #000000;
+
+  --ll-bad: #ff7a7d;
+  --ll-bad-text: #ffa3a5;
+  --ll-bad-surface: #000000;
+  --ll-bad-border: #ffa3a5;
+  --ll-bad-solid: #b3141a;
+  --ll-on-bad: #ffffff;
+
+  --ll-info: #7dbdff;
+  --ll-info-text: #a8d3ff;
+  --ll-info-surface: #000000;
+  --ll-info-border: #a8d3ff;
+  --ll-info-solid: #7dbdff;
+  --ll-on-info: #000000;
+
+  --ll-focus: #ffe14d;
+  --ll-focus-halo: #000000;
+  --ll-selection: rgba(255, 225, 77, 0.45);
+
+  --ll-shadow-1: none;
+  --ll-shadow-2: none;
+  --ll-shadow-3: none;
+  --ll-shadow-accent: none;
+}
+
+/* --------------------------------------------------------------------------
+   Reduced motion: durations collapse to (almost) zero. base.css additionally
+   stops every animation/transition as a catch-all.
+   -------------------------------------------------------------------------- */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --ll-dur-fast: 0.01ms;
+    --ll-dur: 0.01ms;
+    --ll-dur-slow: 0.01ms;
+  }
+}
+:root[data-reduced-motion='true'] {
+  --ll-dur-fast: 0.01ms;
+  --ll-dur: 0.01ms;
+  --ll-dur-slow: 0.01ms;
+}
