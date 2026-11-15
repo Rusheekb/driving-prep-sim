@@ -305,8 +305,8 @@ export function createRenderer(canvas: HTMLCanvasElement, opts: { quality: Graph
     } else if (view.camera === 'chase') {
       camera.fov = 62;
       const a = camYaw + lookYaw;
-      camera.position.set(p.x - Math.sin(a) * 8.2, 3.7, p.z - Math.cos(a) * 8.2);
-      lookAt.set(p.x + Math.sin(a) * 9, 1.5, p.z + Math.cos(a) * 9);
+      camera.position.set(p.x - Math.sin(a) * 8.8, 4.5, p.z - Math.cos(a) * 8.8);
+      lookAt.set(p.x + Math.sin(a) * 6, 0.2, p.z + Math.cos(a) * 6);
     } else {
       const driver = view.camera === 'driver';
       camera.fov = driver ? 72 : 66;

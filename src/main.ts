@@ -1,23 +1,24 @@
 import './ui/styles/index.css';
-import { createGame } from './app/game';
-import { createSettingsStore } from './app/settings';
-import { getJurisdiction } from './jurisdictions';
-import { installFavicon } from './ui/brand';
+import { type ScreenTable, createApp } from './app/app';
+import { progressScreen, quizScreen, resultsScreen, rulesScreen, signsScreen, theoryScreen } from './ui/screens/learn';
+import { briefingScreen, homeScreen, regionScreen, scenariosScreen, welcomeScreen } from './ui/screens/menu';
+import { aboutScreen, controlsScreen, settingsScreen } from './ui/screens/system';
 
-const root = document.getElementById('app')!;
-installFavicon();
-const settings = createSettingsStore();
-const params = new URLSearchParams(location.search);
-const profile = getJurisdiction(params.get('profile') ?? settings.get().jurisdictionId);
+const screens: ScreenTable = {
+  home: homeScreen,
+  welcome: welcomeScreen,
+  region: regionScreen,
+  scenarios: scenariosScreen,
+  briefing: briefingScreen,
+  settings: settingsScreen,
+  controls: controlsScreen,
+  about: aboutScreen,
+  results: resultsScreen,
+  progress: progressScreen,
+  rules: rulesScreen,
+  signs: signsScreen,
+  theory: theoryScreen,
+  quiz: quizScreen,
+};
 
-const game = createGame(root, settings, {
-  onEnd: () => game.idle(profile),
-  onPause: () => undefined,
-});
-game.start('free-drive', profile, {
-  ...settings.get().session,
-  weather: (params.get('weather') as 'clear' | 'rain' | 'fog' | null) ?? 'clear',
-  timeOfDay: (params.get('time') as 'day' | 'dusk' | 'night' | null) ?? 'day',
-});
-// Handy for automated checks and debugging.
-(window as unknown as { __game: unknown }).__game = game;
+createApp(document.getElementById('app')!, screens);

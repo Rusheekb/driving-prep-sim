@@ -381,7 +381,16 @@ export function buildWorld(input: { network: BuiltNetwork; profile: Jurisdiction
   const placeSign = (lane: LaneInfo, s: number, kind: SignKind, value?: number, stack = 0, sizeScale = 1): void => {
     const fw = forwardOf(lane.heading);
     const rt = rightOf(lane.heading);
-    const kerbDist = (lane.laneCount - 1 - lane.index + 0.5) * LANE_WIDTH + 0.85;
+    // Stand the post just behind the kerb (beyond any parking strip).
+    let kerbDist = (lane.laneCount - 1 - lane.index + 0.5) * LANE_WIDTH;
+    for (let d = kerbDist; d < kerbDist + 4; d += 0.2) {
+      const probe = { x: lane.start.x + fw.x * s + rt.x * kerbSign * d, z: lane.start.z + fw.z * s + rt.z * kerbSign * d };
+      if (net.locate(probe).kind === 'sidewalk') {
+        kerbDist = d;
+        break;
+      }
+    }
+    kerbDist += 0.7;
     const x = lane.start.x + fw.x * s + rt.x * kerbSign * kerbDist;
     const z = lane.start.z + fw.z * s + rt.z * kerbSign * kerbDist;
     const face = atlas.face(kind, value);
@@ -411,8 +420,8 @@ export function buildWorld(input: { network: BuiltNetwork; profile: Jurisdiction
       if (node.roundabout && (style.family === 'gb' || style.family === 'de' || style.family === 'ie' || style.family === 'in')) placeSign(lane, lane.length - 0.6, 'roundabout_mandatory', undefined, 2, 0.8);
     }
     if (node.roundabout) placeSign(lane, lane.length - 32, 'roundabout');
-    placeSign(lane, 16, 'speed_limit', limitValue(lane));
-    if (lane.speedClass === 'school') placeSign(lane, 7, 'school_zone', limitValue(lane));
+    placeSign(lane, 40, 'speed_limit', limitValue(lane));
+    if (lane.speedClass === 'school') placeSign(lane, 8, 'school_zone', limitValue(lane));
     if (lane.midblock) placeSign(lane, Math.max(22, lane.midblock.stopS - 18), 'pedestrian_crossing');
   }
   for (const zone of net.zones.values()) {

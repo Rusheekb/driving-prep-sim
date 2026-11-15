@@ -6,20 +6,22 @@ import { SIM_DT } from '../core/constants';
 import type { AppSettings, CameraMode, ControlInput, JurisdictionProfile, SessionResult, SessionSettings, SpeedUnit } from '../core/types';
 import { type InputManager, createInput } from '../input';
 import { type GameRenderer, createRenderer } from '../render/renderer';
+import { type Autopilot, createAutopilot } from '../scenarios/autopilot';
 import { type Session, createSession } from '../sim/session';
 import { type Hud, createHud } from '../ui/hud';
 import type { Store } from './settings';
 
 export interface GameCallbacks {
-  /** The scenario finished (completed or failed). */
-  onEnd(result: SessionResult): void;
+  /** The scenario finished (completed or failed). `demo` = the instructor was driving. */
+  onEnd(result: SessionResult, demo: boolean): void;
   /** The player asked to pause. */
   onPause(): void;
 }
 
 export interface Game {
-  /** Start driving a scenario. */
-  start(scenarioId: string, profile: JurisdictionProfile, settings: SessionSettings): void;
+  /** Start driving a scenario. With `demo`, the instructor's autopilot drives and the learner watches. */
+  start(scenarioId: string, profile: JurisdictionProfile, settings: SessionSettings, opts?: { demo?: boolean }): void;
+  isDemo(): boolean;
   /** Show the town behind the menus (no HUD, no input). */
   idle(profile: JurisdictionProfile): void;
   /** Freeze/unfreeze the simulation (pause menu). */
@@ -54,6 +56,7 @@ export function createGame(root: HTMLElement, settings: Store<AppSettings>, call
   let hud: Hud | null = null;
   let driving = false;
   let paused = false;
+  let pilot: Autopilot | null = null;
   let endTimer = 0;
   let unit: SpeedUnit = 'mph';
 
@@ -102,7 +105,7 @@ export function createGame(root: HTMLElement, settings: Store<AppSettings>, call
       const polled = driving ? input.poll() : NO_INPUT;
       let steps = 0;
       while (acc >= SIM_DT && steps < 6) {
-        session.tick(first ? polled : { ...polled, commands: [] });
+        session.tick(pilot ? pilot.input() : first ? polled : { ...polled, commands: [] });
         first = false;
         acc -= SIM_DT;
         steps++;
@@ -121,11 +124,13 @@ export function createGame(root: HTMLElement, settings: Store<AppSettings>, call
         endTimer += dt;
         if (endTimer > 1.6) {
           const result = session.result(Date.now());
+          const wasDemo = pilot !== null;
           driving = false;
+          pilot = null;
           input.setEnabled(false);
           hud.dispose();
           hud = null;
-          callbacks.onEnd(result);
+          callbacks.onEnd(result, wasDemo);
         }
       }
     }
@@ -137,8 +142,9 @@ export function createGame(root: HTMLElement, settings: Store<AppSettings>, call
     get session() {
       return session;
     },
-    start(scenarioId, profile, sessionSettings) {
+    start(scenarioId, profile, sessionSettings, opts = {}) {
       load(scenarioId, profile, sessionSettings);
+      pilot = opts.demo ? createAutopilot(session!) : null;
       driving = true;
       input.setEnabled(true);
       hud = createHud({
@@ -151,10 +157,13 @@ export function createGame(root: HTMLElement, settings: Store<AppSettings>, call
         onCamera: () => game.cycleCamera(),
       });
       hud.attach(session!.ctx);
+      if (pilot) hud.flash('Instructor demo — press Esc to stop');
       canvas.focus();
     },
+    isDemo: () => pilot !== null,
     idle(profile) {
       driving = false;
+      pilot = null;
       input.setEnabled(false);
       load('idle', profile, { ...settings.get().session, traffic: 'normal', pedestrians: 'few', weather: 'clear', timeOfDay: 'day', feedback: 'exam', seed: 7 });
     },
@@ -166,6 +175,7 @@ export function createGame(root: HTMLElement, settings: Store<AppSettings>, call
       if (!driving || !session) return null;
       const result = session.result(Date.now(), !session.ended);
       driving = false;
+      pilot = null;
       input.setEnabled(false);
       hud?.dispose();
       hud = null;
