@@ -9,6 +9,7 @@ import { type GameRenderer, createRenderer } from '../render/renderer';
 import { type Autopilot, createAutopilot } from '../scenarios/autopilot';
 import { type Session, createSession } from '../sim/session';
 import { type Hud, createHud } from '../ui/hud';
+import { type AudioEngine, createAudio } from '../audio';
 import type { Store } from './settings';
 
 export interface GameCallbacks {
@@ -31,6 +32,7 @@ export interface Game {
   isDriving(): boolean;
   readonly input: InputManager;
   readonly session: Session | null;
+  readonly audio: AudioEngine;
   cycleCamera(): void;
 }
 
@@ -52,6 +54,12 @@ export function createGame(root: HTMLElement, settings: Store<AppSettings>, call
   root.append(stage);
 
   const renderer: GameRenderer = createRenderer(canvas, { quality: settings.get().graphics });
+  const audio = createAudio();
+  audio.setVolume(settings.get().volume);
+  const unlock = (): void => audio.unlock();
+  window.addEventListener('pointerdown', unlock);
+  window.addEventListener('keydown', unlock);
+  const VOICE_LANG: Record<string, string> = { US: 'en-US', GB: 'en-GB', IE: 'en-IE', CA: 'en-CA', AU: 'en-AU', NZ: 'en-NZ', IN: 'en-IN', DE: 'en-GB' };
   let session: Session | null = null;
   let hud: Hud | null = null;
   let driving = false;
@@ -75,7 +83,10 @@ export function createGame(root: HTMLElement, settings: Store<AppSettings>, call
     if (a === 'pause') callbacks.onPause();
     else if (a === 'camera' && !paused) game.cycleCamera();
   });
-  settings.subscribe((s) => renderer.setQuality(s.graphics));
+  settings.subscribe((s) => {
+    renderer.setQuality(s.graphics);
+    audio.setVolume(s.volume);
+  });
 
   function load(scenarioId: string, profile: JurisdictionProfile, sessionSettings: SessionSettings): void {
     hud?.dispose();
@@ -117,6 +128,10 @@ export function createGame(root: HTMLElement, settings: Store<AppSettings>, call
       { camera: driving ? s.camera : 'chase', showMirrors: driving && s.showMirrors, navLine: s.navLine && session.ctx.settings.feedback === 'coach', scenario: session.scenario, reducedMotion: s.reducedMotion },
       dt,
     );
+    if (driving && !paused) {
+      const pl = session.ctx.player;
+      audio.update({ time: session.ctx.time, engineOn: pl.engineOn, throttle: pl.throttle, speed: Math.abs(pl.vehicle.speed), indicator: pl.indicator, horn: pl.horn, raining: session.ctx.env.weather === 'rain' });
+    } else audio.silence();
     if (driving && hud) {
       hud.update({ ctx: session.ctx, scenario: session.scenario, mirrors: s.showMirrors && s.camera !== 'top' ? renderer.mirrorLayout() : { left: null, centre: null, right: null }, camera: s.camera, device: input.lastDevice(), touchVisible: input.touchVisible() });
       if (++frame % 6 === 0) input.refresh();
@@ -139,6 +154,7 @@ export function createGame(root: HTMLElement, settings: Store<AppSettings>, call
 
   const game: Game = {
     input,
+    audio,
     get session() {
       return session;
     },
@@ -157,6 +173,19 @@ export function createGame(root: HTMLElement, settings: Store<AppSettings>, call
         onCamera: () => game.cycleCamera(),
       });
       hud.attach(session!.ctx);
+      const events = session!.ctx.events;
+      const coachOn = sessionSettings.feedback === 'coach';
+      audio.setVoice(settings.get().voice, VOICE_LANG[profile.countryCode] ?? 'en-US');
+      events.on('fault', (f) => coachOn && audio.play(f.severity === 'minor' ? 'fault_minor' : 'fault_serious'));
+      events.on('praise', () => coachOn && audio.play('praise'));
+      events.on('instruction', (ins) => {
+        audio.play('instruction');
+        audio.speak(ins.text);
+      });
+      events.on('step', () => audio.play('step'));
+      events.on('collision', () => audio.play('collision'));
+      events.on('command', () => audio.play('switch'));
+      events.on('ended', (e) => audio.play(e.status === 'completed' ? 'success' : 'fail'));
       if (pilot) hud.flash('Instructor demo — press Esc to stop');
       canvas.focus();
     },

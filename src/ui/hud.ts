@@ -281,7 +281,13 @@ export function createHud(opts: HudOptions): Hud {
         toasts.style.top = `${cache.sideY}px`;
         buttons.style.top = `${cache.sideY}px`;
       });
-      set('touch', frame.touchVisible, () => hud.classList.toggle('ll-hud--touch', frame.touchVisible));
+      set('touch', frame.touchVisible, () => {
+        hud.classList.toggle('ll-hud--touch', frame.touchVisible);
+        // On touch screens the coaching text sits under the instruction, clear of the wheel and pedals.
+        if (frame.touchVisible) top.append(coach);
+        else hud.insertBefore(coach, dash);
+      });
+      const device = frame.touchVisible ? 'touch' : frame.device;
 
       // Instruction.
       const ins = scenario.instruction;
@@ -300,10 +306,10 @@ export function createHud(opts: HudOptions): Hud {
       set('insDist', dist, () => (bannerDist.textContent = dist));
 
       // Coach text + progress.
-      set('coach', `${scenario.coach ?? ''}|${frame.device}`, () => {
+      set('coach', `${scenario.coach ?? ''}|${device}`, () => {
         coach.classList.toggle('is-on', !!scenario.coach);
         coachText.textContent = '';
-        if (scenario.coach) coachText.append(...coachNodes(scenario.coach, frame.device));
+        if (scenario.coach) coachText.append(...coachNodes(scenario.coach, device));
       });
       set('progress', scenario.totalSteps > 1 ? scenario.step / scenario.totalSteps : -1, () => {
         const f = cache.progress as number;

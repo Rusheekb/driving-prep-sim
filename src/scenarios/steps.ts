@@ -337,7 +337,7 @@ function maneuverStep(o: ManeuverBase, check: (e: StepEnv, dt: number, moves: nu
   return {
     label: o.label,
     enter(e) {
-      e.say(tx(e.profile, o.instruction), o.icon);
+      e.say(cap(tx(e.profile, o.instruction)), o.icon);
       e.state.coach = o.coach ? tx(e.profile, o.coach) : null;
       e.state.activeManeuver = o.maneuver;
       e.state.targets = target('active');
@@ -386,7 +386,7 @@ export function parallelPark(o: { bay: Obb; coach?: string }): Step {
     {
       label: 'Parallel park',
       maneuver: 'parallel_park',
-      instruction: `${cap('{parallelPark}')} in the marked space`,
+      instruction: '{parallelPark} in the marked space',
       icon: 'park',
       coach: o.coach,
       target: o.bay,

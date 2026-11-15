@@ -53,6 +53,15 @@ export const settingsScreen: ScreenFactory = (app) => {
       ),
     ),
     section(
+      'Sound',
+      h(
+        'div',
+        { class: 'll-panel' },
+        slider('Volume', s.volume, 0, 1, 0.05, (v) => set({ volume: v }), (v) => `${Math.round(v * 100)}%`),
+        toggle('Speak instructions aloud', s.voice, (v) => set({ voice: v }), 'Uses your browser\'s built-in voice, where available.'),
+      ),
+    ),
+    section(
       'Controls',
       h(
         'div',

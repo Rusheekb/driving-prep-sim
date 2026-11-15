@@ -108,7 +108,8 @@
 /* touch layout: keep clear of the wheel and pedals */
 .ll-hud--touch .ll-hud__map { display: none; }
 .ll-hud--touch .ll-hud__dash { transform: translateX(-50%) scale(0.86); transform-origin: bottom center; }
-.ll-hud--touch .ll-hud__coach { bottom: 150px; width: min(56vw, 520px); font-size: var(--ll-text-sm); }
+.ll-hud__top .ll-hud__coach { position: static; transform: none; width: 100%; padding: 7px 12px; font-size: var(--ll-text-sm); line-height: 1.35; }
+.ll-hud--touch .ll-hud__top { width: min(46vw, 520px); }
 
 @media (max-height: 520px) {
   .ll-hud__map { width: 110px; height: 110px; }

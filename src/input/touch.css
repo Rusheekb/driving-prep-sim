@@ -67,12 +67,11 @@
 .ll-touch__cluster--right {
   right: max(14px, env(safe-area-inset-right));
   bottom: calc(max(12px, env(safe-area-inset-bottom)) + clamp(110px, 30vmin, 190px) + 10px);
-  flex-wrap: wrap;
   justify-content: flex-end;
-  max-width: 250px;
+  gap: 6px;
 }
-.ll-touch__cluster--obs-left { left: max(14px, env(safe-area-inset-left)); top: 34%; }
-.ll-touch__cluster--obs-right { right: max(14px, env(safe-area-inset-right)); top: 34%; }
+.ll-touch__cluster--obs-left { left: max(14px, env(safe-area-inset-left)); top: 30%; }
+.ll-touch__cluster--obs-right { right: max(14px, env(safe-area-inset-right)); top: 30%; }
 
 .ll-touch__btn {
   min-width: 44px;
@@ -113,4 +112,12 @@
 
 @media (orientation: portrait) {
   .ll-touch__cluster--obs-left, .ll-touch__cluster--obs-right { top: 46%; }
+}
+
+@media (max-height: 460px) {
+  .ll-touch__btn { min-width: 40px; height: 40px; padding: 0 8px; border-radius: 10px; font-size: 0.85rem; }
+  .ll-touch__btn--look { min-width: 54px; font-size: 0.62rem; }
+  .ll-touch__btn--ind { min-width: 48px; }
+  .ll-touch__cluster { gap: 5px; }
+  .ll-touch__cluster--obs-left, .ll-touch__cluster--obs-right { top: 35%; }
 }
