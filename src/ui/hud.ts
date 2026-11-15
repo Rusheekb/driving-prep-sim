@@ -206,7 +206,8 @@ export function createHud(opts: HudOptions): Hud {
     }
   }
 
-  hud.append(top, buttons, toasts, coach, dash, map);
+  top.append(coach);
+  hud.append(top, buttons, toasts, dash, map);
   opts.root.append(hud);
 
   /* ---- cached values so we only touch the DOM on change ---- */
@@ -283,9 +284,6 @@ export function createHud(opts: HudOptions): Hud {
       });
       set('touch', frame.touchVisible, () => {
         hud.classList.toggle('ll-hud--touch', frame.touchVisible);
-        // On touch screens the coaching text sits under the instruction, clear of the wheel and pedals.
-        if (frame.touchVisible) top.append(coach);
-        else hud.insertBefore(coach, dash);
       });
       const device = frame.touchVisible ? 'touch' : frame.device;
 

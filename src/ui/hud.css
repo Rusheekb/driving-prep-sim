@@ -23,7 +23,7 @@
 .ll-hud__ctl { font-weight: 800; color: var(--ll-accent); }
 
 /* instruction banner */
-.ll-hud__top { position: absolute; left: 50%; top: 10px; transform: translateX(-50%); display: grid; justify-items: center; gap: 6px; width: min(92vw, 560px); }
+.ll-hud__top { position: absolute; left: 50%; top: 10px; transform: translateX(-50%); display: grid; justify-items: center; gap: 6px; width: min(92vw, 600px); }
 .ll-hud__banner {
   display: none;
   align-items: center;
@@ -108,7 +108,8 @@
 /* touch layout: keep clear of the wheel and pedals */
 .ll-hud--touch .ll-hud__map { display: none; }
 .ll-hud--touch .ll-hud__dash { transform: translateX(-50%) scale(0.86); transform-origin: bottom center; }
-.ll-hud__top .ll-hud__coach { position: static; transform: none; width: 100%; padding: 7px 12px; font-size: var(--ll-text-sm); line-height: 1.35; }
+.ll-hud__top .ll-hud__coach { position: static; transform: none; width: 100%; }
+.ll-hud--touch .ll-hud__coach { padding: 7px 12px; font-size: var(--ll-text-sm); line-height: 1.35; }
 .ll-hud--touch .ll-hud__top { width: min(46vw, 520px); }
 
 @media (max-height: 520px) {
