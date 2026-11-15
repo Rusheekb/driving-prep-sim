@@ -163,37 +163,45 @@ sidewalk 2.6 m, crosswalk 3 m, roundabout island radius 7 m + 5 m lane).
 * `allway_stop` nodes become `yield_minor` when `rules.allWayStops` is false.
 * Speed limits come from `profile.speedLimits[speedClass]`, converted to m/s.
 
-## 5. Module ownership
+## 5. Where things live
 
-Each module has one owner; do not edit files outside your module (ask for a
-contract change in your hand-off notes instead).
-
-| Path | Exports (public API) |
+| Path | What it is |
 |---|---|
-| `src/world/town.ts` | `TOWN: MapDef` |
-| `src/world/network.ts` | `buildRoadNetwork(map, profile): RoadNetwork`, `validateMap(map): string[]` |
-| `src/world/routing.ts` | `findRoute(net, fromLaneId, toLaneId, opts?): RouteLeg[] \| null`, `routePolyline(net, legs, fromS?, toS?): Vec2[]`, `routeLength(net, legs): number` |
-| `src/world/signals.ts` | `createSignalSystem(net, profile): SignalSystem` |
-| `src/world/scenery.ts` | `generateScenery(net, seed): SceneryLayout` (pure layout: buildings, trees, lamps → also static obstacles) |
-| `src/sim/vehicle.ts` | `createVehicle(...)`, `stepVehicle(v, cmd, dt, grip)`, `vehicleObb(v, margin?)`, AI/parked specs |
-| `src/sim/playerCar.ts` | `createPlayerCar(pose): PlayerCar`, `updatePlayerCar(ctx, input, dt)` |
-| `src/sim/collision.ts` | `resolveCollisions(ctx): void` (emits `collision`) |
-| `src/sim/environment.ts` | `createEnvironment(settings, profile): EnvironmentState` |
-| `src/sim/traffic.ts` | `createTraffic(ctx): { update(ctx, dt): void }` |
-| `src/sim/pedestrians.ts` | `createPedestrians(ctx): { update(ctx, dt): void }` |
-| `src/sim/session.ts` | `createSession(opts): Session` — owns the tick order above |
-| `src/rules/catalog.ts` | `FAULTS: Record<FaultCode, FaultSpec>` |
-| `src/rules/monitor.ts` | `createRuleMonitor(ctx, opts): RuleMonitor` |
-| `src/rules/scoring.ts` | `scoreFaults(faults, profile): ScoreSummary`, `starsFor(...)` |
-| `src/scenarios/` | scenario registry, runtime, manoeuvre evaluators, autopilot |
-| `src/jurisdictions/` | one file per profile + `index.ts` registry |
-| `src/theory/` | question banks + quiz engine |
-| `src/signs/` | `signSvg(kind, style, opts): string` + catalogue |
-| `src/render/` | three.js renderer, world/vehicle meshes, cameras, mirrors, environment |
-| `src/input/` | `createInput(...)`: keyboard/gamepad/touch → `ControlInput` |
-| `src/audio/` | `createAudio(...)`: engine, indicator tick, horn, chimes, speech |
-| `src/ui/` | design system (CSS), DOM helper, screens, HUD |
-| `src/app/` | app state machine, game loop, persistence |
+| `src/core/` | shared types (`types.ts`), math, RNG, events, units, constants |
+| `src/jurisdictions/*.ts` | one `JurisdictionProfile` per region; `index.ts` discovers them automatically |
+| `src/world/town.ts` | the town map (`TOWN`) |
+| `src/world/layout.ts`, `connectors.ts`, `paths.ts`, `network.ts` | `buildRoadNetwork(map, profile)`: lanes, junction arms, stop lines, crosswalks, connectors, conflicts, `locate()` |
+| `src/world/routing.ts` | `findRoute`, `routeThroughNodes` (plans lane changes), `routePolyline` |
+| `src/world/signals.ts`, `scenery.ts` | fixed-time signals; deterministic buildings/trees/lamps |
+| `src/sim/vehicle.ts`, `playerCar.ts`, `collision.ts`, `environment.ts` | car physics, the learner's car and its interlocks, collisions, weather/time |
+| `src/sim/traffic.ts`, `pedestrians.ts` | AI drivers (IDM + priority rules) and pedestrians at crossings |
+| `src/sim/session.ts` | one drive: owns the `SimContext`, runs the tick, produces the `SessionResult` |
+| `src/rules/` | fault catalogue, the rule monitor ("examiner"), fault text, scoring |
+| `src/scenarios/core.ts`, `steps.ts`, `defs.ts` | scenario engine, step library, the lessons/drills/tests |
+| `src/scenarios/autopilot.ts` | the instructor's driving: demos, and the zero-fault test oracle |
+| `src/theory/` | quiz engine; questions generated from profiles + sign library; optional hand-written banks in `banks/` |
+| `src/signs/` | road-sign SVG artwork per country family |
+| `src/render/` | three.js: static town (`world.ts`), vehicles/pedestrians/overlays (`actors.ts`), cameras/mirrors/weather (`renderer.ts`) |
+| `src/input/`, `src/audio/` | keyboard/gamepad/touch; synthesized sound and speech |
+| `src/ui/` | design tokens, DOM helper, kit, HUD, screens |
+| `src/app/` | app router, game loop, settings and progress stores |
+
+### Adding a region
+
+1. Copy an existing profile in `src/jurisdictions/` (for example `us-ca.ts`) to
+   `<id>.ts` and fill in every field from the official handbook, citing sources.
+2. `npm test` — `jurisdictions.test.ts` validates every profile, builds the town
+   for it and renders its signs and fault text.
+3. If the country uses a sign system that is not yet drawn, add a family in
+   `src/signs/index.ts`.
+
+### The zero-fault oracle
+
+`src/scenarios/autopilot.test.ts` drives every lesson with the instructor
+autopilot in strict observation mode on both driving sides and asserts that the
+rule monitor records nothing. It is the main guard against the worst kind of
+bug in a teaching tool: accusing a learner of a fault they did not commit. Run
+it after any change to `rules/`, `sim/traffic.ts`, `scenarios/` or `world/`.
 
 ## 6. Controls (default keyboard map — uses `KeyboardEvent.code`)
 
