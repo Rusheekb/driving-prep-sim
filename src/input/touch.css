@@ -1,0 +1,116 @@
+/* Touch driving controls. Landscape phones first. */
+.ll-touch {
+  position: absolute;
+  inset: 0;
+  z-index: var(--ll-z-touch, 20);
+  pointer-events: none;
+  user-select: none;
+  -webkit-user-select: none;
+  touch-action: none;
+  font-family: var(--ll-font-sans, system-ui, sans-serif);
+  --t-glass: rgba(12, 18, 32, 0.62);
+  --t-line: rgba(255, 255, 255, 0.28);
+}
+.ll-touch[hidden] { display: none; }
+.ll-touch > * { pointer-events: auto; touch-action: none; }
+
+.ll-touch__wheel {
+  position: absolute;
+  left: max(14px, env(safe-area-inset-left));
+  bottom: max(12px, env(safe-area-inset-bottom));
+  width: clamp(120px, 24vmin, 190px);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  background: var(--t-glass);
+  border: 1.5px solid var(--t-line);
+  color: #f4f6fb;
+  backdrop-filter: blur(6px);
+}
+.ll-touch__wheel-face { width: 100%; height: 100%; transition: transform 40ms linear; }
+.ll-touch__wheel-face svg { width: 100%; height: 100%; display: block; }
+
+.ll-touch__pedals {
+  position: absolute;
+  right: max(14px, env(safe-area-inset-right));
+  bottom: max(12px, env(safe-area-inset-bottom));
+  display: flex;
+  gap: 10px;
+  align-items: flex-end;
+}
+.ll-touch__pedal {
+  width: clamp(64px, 12vmin, 96px);
+  height: clamp(110px, 30vmin, 190px);
+  border-radius: 14px;
+  background: var(--t-glass);
+  border: 1.5px solid var(--t-line);
+  color: #f4f6fb;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding-bottom: 10px;
+  font-weight: 800;
+  font-size: 0.72rem;
+  letter-spacing: 0.1em;
+  backdrop-filter: blur(6px);
+}
+.ll-touch__pedal--brake { width: clamp(78px, 15vmin, 116px); border-color: rgba(240, 85, 90, 0.75); }
+.ll-touch__pedal--gas { border-color: rgba(47, 191, 113, 0.8); }
+.ll-touch__pedal.is-down { background: rgba(255, 255, 255, 0.22); }
+.ll-touch__pedal--brake.is-down { background: rgba(240, 85, 90, 0.45); }
+.ll-touch__pedal--gas.is-down { background: rgba(47, 191, 113, 0.45); }
+
+.ll-touch__cluster { position: absolute; display: flex; gap: 8px; align-items: center; }
+.ll-touch__cluster--left {
+  left: max(14px, env(safe-area-inset-left));
+  bottom: calc(max(12px, env(safe-area-inset-bottom)) + clamp(120px, 24vmin, 190px) + 10px);
+}
+.ll-touch__cluster--right {
+  right: max(14px, env(safe-area-inset-right));
+  bottom: calc(max(12px, env(safe-area-inset-bottom)) + clamp(110px, 30vmin, 190px) + 10px);
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  max-width: 250px;
+}
+.ll-touch__cluster--obs-left { left: max(14px, env(safe-area-inset-left)); top: 34%; }
+.ll-touch__cluster--obs-right { right: max(14px, env(safe-area-inset-right)); top: 34%; }
+
+.ll-touch__btn {
+  min-width: 44px;
+  height: 44px;
+  padding: 0 10px;
+  border-radius: 12px;
+  background: var(--t-glass);
+  border: 1.5px solid var(--t-line);
+  color: #f4f6fb;
+  font: inherit;
+  font-weight: 800;
+  font-size: 0.95rem;
+  backdrop-filter: blur(6px);
+  -webkit-tap-highlight-color: transparent;
+}
+.ll-touch__btn.is-down { background: rgba(255, 255, 255, 0.28); }
+.ll-touch__btn.is-active { background: #ffd23f; border-color: #ffd23f; color: #161b2b; }
+.ll-touch__btn.is-alert { background: #cf2f35; border-color: #ff8a8d; color: #fff; }
+.ll-touch__btn--ind { min-width: 54px; font-size: 1.1rem; }
+.ll-touch__btn--look { font-size: 0.7rem; letter-spacing: 0.06em; min-width: 62px; }
+.ll-touch__btn--gear.is-active { background: #2fbf71; border-color: #2fbf71; color: #06200f; }
+.ll-touch__btn--wide { width: 100%; font-size: 0.8rem; }
+
+.ll-touch__more {
+  position: absolute;
+  right: max(14px, env(safe-area-inset-right));
+  top: 12%;
+  width: 150px;
+  display: grid;
+  gap: 6px;
+  padding: 8px;
+  border-radius: 14px;
+  background: rgba(12, 18, 32, 0.92);
+  border: 1.5px solid var(--t-line);
+  z-index: 2;
+}
+.ll-touch__more[hidden] { display: none; }
+
+@media (orientation: portrait) {
+  .ll-touch__cluster--obs-left, .ll-touch__cluster--obs-right { top: 46%; }
+}

@@ -1,0 +1,7 @@
+/* App shell layers */
+html, body { height: 100%; margin: 0; overflow: hidden; background: var(--ll-bg); }
+#app { position: fixed; inset: 0; }
+.ll-stage { position: absolute; inset: 0; overflow: hidden; background: #8fcaf7; }
+.ll-stage__canvas { display: block; width: 100%; height: 100%; outline: none; touch-action: none; }
+.ll-stage__layer { position: absolute; inset: 0; pointer-events: none; }
+.ll-stage__layer > * { pointer-events: none; }
