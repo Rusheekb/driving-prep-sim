@@ -30,7 +30,7 @@ import type {
   ZoneInfo,
 } from '../core/types';
 import { type BuiltConnector, attachCrosswalks, buildNodeConnectors, computeConflicts } from './connectors';
-import { CONNECTOR_SNAP_DISTANCE, MIDBLOCK_MIN_CLEARANCE, MIDBLOCK_STOP_GAP, MIN_LANE_LENGTH } from './dims';
+import { CONNECTOR_SNAP_DISTANCE, DRIVEWAY_FLARE, MIDBLOCK_MIN_CLEARANCE, MIDBLOCK_STOP_GAP, MIN_LANE_LENGTH } from './dims';
 import {
   AXIS_OF,
   type Layout,
@@ -441,6 +441,23 @@ export function buildRoadNetwork(map: MapDef, profile: NetworkProfile): BuiltNet
   const hit = newPolylineHit();
   const OFFROAD: SurfaceLocation = { kind: 'offroad' };
 
+  /**
+   * The driveway where it crosses the sidewalk, including the flared apron (widest at the kerb).
+   * Driveways run north–south and meet an east–west road at one end.
+   */
+  function onDrivewayApron(zone: ZoneInfo, x: number, z: number): boolean {
+    const d = zone.driveway;
+    if (z < d.minZ || z > d.maxZ) return false;
+    if (x >= d.minX && x <= d.maxX) return true;
+    const road = roads.get(zone.roadId);
+    if (!road || road.axis !== 'EW') return false;
+    const mouthZ = Math.abs(d.minZ - road.start.z) < Math.abs(d.maxZ - road.start.z) ? d.minZ : d.maxZ;
+    const depth = Math.abs(z - mouthZ) / SIDEWALK_WIDTH;
+    if (depth > 1) return false;
+    const flare = DRIVEWAY_FLARE * (1 - depth);
+    return x >= d.minX - flare && x <= d.maxX + flare;
+  }
+
   function locateOnRoad(rt: RoadRuntime, x: number, z: number): SurfaceLocation | null {
     const g = rt.geom;
     const dx = x - g.a.x;
@@ -473,7 +490,7 @@ export function buildRoadNetwork(map: MapDef, profile: NetworkProfile): BuiltNet
           : { kind: 'parking_strip', road: rt.info, lane: best.lane, s: g.length - g.setbackB - along, lateral: best.r - r };
       }
     }
-    for (const zone of zones.values()) if (rectContains(zone.driveway, { x, z })) return { kind: 'zone', zone, onDriveway: true };
+    for (const zone of zones.values()) if (onDrivewayApron(zone, x, z)) return { kind: 'zone', zone, onDriveway: true };
     return { kind: 'sidewalk', road: rt.info };
   }
 

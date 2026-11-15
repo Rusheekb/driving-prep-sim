@@ -10,7 +10,7 @@ export const CROSSWALK_GAP = 0.5;
  * Room left for the kerb to curve round the corner at junctions WITHOUT marked
  * crosswalks, so that a kerb-side turn has a drivable radius.
  */
-export const KERB_CORNER_ALLOWANCE = 3.7;
+export const KERB_CORNER_ALLOWANCE = 4.8;
 
 /** Distance from the end of that kerb curve to the stop/give-way line at junctions without crosswalks. */
 export const UNMARKED_LINE_GAP = 1.0;
@@ -44,3 +44,6 @@ export const MERGE_ANGLE = (30 * Math.PI) / 180;
 
 /** `locate()` reports the nearest connector inside a junction only when it is within this distance. */
 export const CONNECTOR_SNAP_DISTANCE = 3;
+
+/** Driveways flare out by this much on each side where they cross the sidewalk, so cars can turn in and out. */
+export const DRIVEWAY_FLARE = 5.5;

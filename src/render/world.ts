@@ -10,6 +10,7 @@ import { COMPASS_VEC, forwardOf, rightOf } from '../core/math';
 import { fromMps } from '../core/units';
 import type { EnvironmentState, JurisdictionProfile, LaneInfo, SimContext, Vec2 } from '../core/types';
 import { type SignKind, signAspect, signDataUrl, signStyleFor, signSvg } from '../signs';
+import { DRIVEWAY_FLARE } from '../world/dims';
 import type { BlockGeom, NodeGeom } from '../world/layout';
 import type { BuiltNetwork } from '../world/network';
 import type { SceneryLayout } from '../world/scenery';
@@ -87,15 +88,19 @@ function blockOutline(net: BuiltNetwork, block: BlockGeom, edges: Edges, inset: 
     const m = zoneMargin;
     const dr = zone.driveway;
     const r = zone.rect;
+    // Flared apron where the driveway crosses the sidewalk (only on the slab outline, which starts at the kerb).
+    const flare = m === 0 ? DRIVEWAY_FLARE : 0;
     pts.push(
-      { x: dr.minX - m, z: edges.n },
+      { x: dr.minX - m - flare, z: edges.n },
+      ...(flare ? [{ x: dr.minX, z: edges.n + SIDEWALK_WIDTH }] : []),
       { x: dr.minX - m, z: r.minZ - m },
       { x: r.minX - m, z: r.minZ - m },
       { x: r.minX - m, z: r.maxZ + m },
       { x: r.maxX + m, z: r.maxZ + m },
       { x: r.maxX + m, z: r.minZ - m },
       { x: dr.maxX + m, z: r.minZ - m },
-      { x: dr.maxX + m, z: edges.n },
+      ...(flare ? [{ x: dr.maxX, z: edges.n + SIDEWALK_WIDTH }] : []),
+      { x: dr.maxX + m + flare, z: edges.n },
     );
   }
   // NE corner: h → v.

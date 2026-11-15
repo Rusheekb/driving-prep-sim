@@ -5,18 +5,15 @@ import type { JurisdictionProfile } from '../core/types';
 import { GB } from '../jurisdictions/gb';
 import { US_CA } from '../jurisdictions/us-ca';
 import { DEFAULT_SESSION } from '../app/settings';
-import { createPedestrians } from './pedestrians';
 import { createSession } from './session';
-import { createTraffic } from './traffic';
 import { vehicleObb } from './vehicle';
 
 const PRIORITY_RIGHT: JurisdictionProfile = { ...US_CA, id: 'test-ptr', rules: { ...US_CA.rules, uncontrolledPriority: 'priority_to_right', allWayStops: false, pedestrianPriority: 'on_or_waiting' } };
 
 function soak(profile: JurisdictionProfile, minutes: number, seed: number) {
-  const session = createSession({ scenarioId: 'test', profile, settings: { ...DEFAULT_SESSION, traffic: 'heavy', pedestrians: 'many', seed } });
+  const session = createSession({ scenarioId: 'free-drive', profile, settings: { ...DEFAULT_SESSION, traffic: 'heavy', pedestrians: 'many', seed } });
   const ctx = session.ctx;
-  const traffic = createTraffic(ctx);
-  const peds = createPedestrians(ctx);
+  const idle = { throttle: 0, brake: 0, steer: 0, look: 'ahead' as const, horn: false, commands: [] };
   const start = new Map(ctx.vehicles.map((v) => [v.id, { x: v.x, z: v.z, dist: 0 }]));
   let overlaps = 0;
   let redRuns = 0;
@@ -26,12 +23,8 @@ function soak(profile: JurisdictionProfile, minutes: number, seed: number) {
   const wasCrossing = new Set<number>();
   const steps = Math.round((minutes * 60) / SIM_DT);
   for (let i = 0; i < steps; i++) {
-    ctx.time += SIM_DT;
-    ctx.frame++;
-    ctx.signals.update(SIM_DT);
     const before = ctx.vehicles.map((v) => ({ id: v.id, lane: v.nav?.laneId ?? null }));
-    traffic.update(ctx, SIM_DT);
-    peds.update(ctx, SIM_DT);
+    session.tick(idle);
     for (const v of ctx.vehicles) {
       const rec = start.get(v.id);
       if (rec) {

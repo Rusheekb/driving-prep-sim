@@ -41,14 +41,16 @@ function setOff(coach = ROUTINE): Step[] {
 }
 
 /** Instruction-only step used by tests: wait until the learner is on the road. */
-const leaveCarPark = (text: string): Step =>
-  prompt({
+const leaveCarPark = (text: string, firstLaneId: string): Step => ({
+  ...prompt({
     label: 'Leave the car park',
     coach: '',
     say: { text, icon: 'straight' },
     until: (e) => e.ctx.player.location.kind === 'lane',
     enter: (e) => (e.state.coach = null),
-  });
+  }),
+  auto: { kind: 'route', legs: () => [{ laneId: firstLaneId, connectorId: null }], stopAt: () => null },
+});
 
 /** "Move into the left/right lane when it is safe." */
 function laneChange(to: 'centre' | 'kerb', coach?: string): Step {
@@ -140,12 +142,12 @@ const lessonMovingOff: ScenarioDef = {
       steps: [
         explain('Briefing', `You are parked at the {curb}. ${ROUTINE}`, 6),
         ...setOff(),
-        drive({ via: ['B4', 'B5'], endS: 48, coach: 'Good. Keep to the middle of your lane and under the limit shown beside your speed.' }),
+        drive({ via: ['B4', 'B5', 'C5'], endS: 12, coach: 'Good. Keep to the middle of your lane and under the limit shown beside your speed.' }),
         pullOver({ coach: 'Mirrors first [2], signal toward the {curb}, then slow down and steer in gently. Finish close to the {curb} and straight.' }),
         secureCar(),
         explain('Again', 'Well done. Once more — this time without the hints. Move off, and I will ask you to pull over again.', 4),
         ...setOff(''),
-        drive({ via: ['B4', 'B5', 'C5'], endS: 30 }),
+        drive({ via: ['B5', 'C5', 'D5'], endS: 12 }),
         pullOver(),
         secureCar(),
       ],
@@ -213,7 +215,7 @@ const lessonStops: ScenarioDef = {
       steps: [
         explain('Briefing', `${allWay} ${priority}`, 7),
         ...setOff(),
-        drive({ via: ['A2', 'B2', 'C2', 'C1', 'B1', 'B2', 'A2'], endS: 30, coach: 'A stop sign means wheels still, behind the line. Count "one" before you move. The school zone ahead has a lower limit.' }),
+        drive({ via: ['A2', 'B2', 'C2', 'C1', 'B1', 'B2', 'A2'], endS: 16, coach: 'A stop sign means wheels still, behind the line. Count "one" before you move. The school zone ahead has a lower limit.' }),
         pullOver(),
         secureCar(),
       ],
@@ -248,7 +250,7 @@ const lessonLights: ScenarioDef = {
       steps: [
         explain('Briefing', `${red} ${seq}`, 7),
         ...setOff(),
-        drive({ via: ['B4', 'B3', 'C3', 'D3', 'D2', 'D1', 'C1'], endS: 30, coach: `Watch each ${t.trafficLight} as you approach. Turning across oncoming traffic on green, wait in the junction until there is a safe gap.` }),
+        drive({ via: ['B4', 'B3', 'C3', 'D3', 'D2', 'D1', 'C1'], endS: 16, coach: `Watch each ${t.trafficLight} as you approach. Turning across oncoming traffic on green, wait in the junction until there is a safe gap.` }),
         pullOver(),
         secureCar(),
       ],
@@ -280,7 +282,7 @@ const lessonRoundabouts: ScenarioDef = {
       steps: [
         explain('Briefing', `Slow down on the approach and {yield} to traffic already on the {roundabout}. Go round ${dir}. ${sig}`, 7),
         ...setOff(),
-        drive({ via: ['B4', 'C4', 'C5', 'D5', 'E5', 'F5', 'F4', 'F3', 'F2', 'E2', 'D2'], endS: 40, coach: 'Count the exits as you pass them. Look for a gap, then go without stopping if it is clear.' }),
+        drive({ via: ['B4', 'C4', 'C5', 'D5', 'E5', 'F5', 'F4', 'F3', 'F2', 'E2', 'D2'], endS: 16, coach: 'Count the exits as you pass them. Look for a gap, then go without stopping if it is clear.' }),
         pullOver(),
         secureCar(),
       ],
@@ -316,7 +318,7 @@ const lessonLaneChanges: ScenarioDef = {
         drive({ via: ['B3', 'C3', 'D3'], endS: 12 }),
         laneChange('centre', 'Once more. Remember the signal may not cancel itself after a lane change.'),
         laneChange('kerb'),
-        drive({ via: ['C3', 'D3', 'E3', 'E4'], endS: 30 }),
+        drive({ via: ['C3', 'D3', 'E3', 'E4'], endS: 16 }),
         pullOver(),
         secureCar(),
       ],
@@ -401,7 +403,7 @@ const lessonNight: ScenarioDef = {
           act: (e) => (e.ctx.player.wipers ? { brake: 1 } : { brake: 1, commands: [{ type: 'wipers' }] }),
         }),
         ...setOff('Wet roads roughly double your stopping distance. Drive a little under the limit and brake earlier than usual.'),
-        drive({ via: ['E4', 'E5', 'D5', 'C5', 'B5', 'B4', 'C4', 'D4'], endS: 30 }),
+        drive({ via: ['E4', 'E5', 'D5', 'C5', 'B5', 'B4', 'C4', 'D4'], endS: 16 }),
         pullOver(),
         secureCar(),
       ],
@@ -548,7 +550,7 @@ const skillEmergency: ScenarioDef = {
     return {
       start: place.atKerb(lane.id, 20),
       car: READY,
-      steps: [...setOff(), emergencyStop({ coach: 'Build up to the speed limit. When you hear STOP, brake hard [S] straight away.' }), drive({ via: ['A5', 'B5', 'C5', 'D5'], endS: 40 }), pullOver(), secureCar()],
+      steps: [...setOff(), emergencyStop({ coach: 'Build up to the speed limit. When you hear STOP, brake hard [S] straight away.' }), drive({ via: ['A5', 'B5', 'C5', 'D5'], endS: 16 }), pullOver(), secureCar()],
     };
   },
 };
@@ -579,7 +581,7 @@ const skillKerbside: ScenarioDef = {
 function buildTest({ place, profile }: BuildEnv, full: boolean) {
   const m = new Set(profile.roadTest.mockTestManeuvers);
   const props: PropDef[] = [];
-  const steps: Step[] = [leaveCarPark('When you are ready, leave the car park and turn right onto the road')];
+  const steps: Step[] = [leaveCarPark('When you are ready, leave the car park and turn right onto the road', place.lane('D4', 'E4').id)];
   const t = profile.terms;
 
   // Part 1: town centre, main road, school zone.

@@ -60,51 +60,55 @@ export function findRoute(net: RoadNetwork, fromLaneId: string, toLaneId: string
 
 /**
  * Build a route that passes through the given sequence of adjacent node ids
- * (e.g. ['B4', 'B3', 'C3']). Chooses lanes so that every turn starts from a lane
- * that actually has that movement. Returns null if the nodes are not connected.
+ * (e.g. ['B4', 'B3', 'C3']). Where a turn needs a different lane from the one
+ * the previous turn delivered you into (multi-lane roads), the route contains
+ * a LANE-CHANGE leg: a non-final leg with `connectorId: null` whose successor
+ * is the neighbouring lane on the same road. Returns null if the nodes are not
+ * connected.
  */
 export function routeThroughNodes(net: RoadNetwork, nodeIds: readonly string[]): RouteLeg[] | null {
   if (nodeIds.length < 2) return null;
-  // Candidate lanes for each hop.
   const hops: string[][] = [];
   for (let i = 0; i + 1 < nodeIds.length; i++) {
-    const ids = [...net.lanes.values()].filter((l) => l.from === nodeIds[i] && l.to === nodeIds[i + 1]).map((l) => l.id);
+    const ids = [...net.lanes.values()]
+      .filter((l) => l.from === nodeIds[i] && l.to === nodeIds[i + 1])
+      .sort((a, b) => b.index - a.index) // kerb-most first
+      .map((l) => l.id);
     if (!ids.length) return null;
     hops.push(ids);
   }
-  // Walk backwards so each lane choice is known to connect onward; prefer the kerb-most lane when free to choose.
-  let nextChoices = new Map<string, RouteLeg[]>();
-  for (const id of hops[hops.length - 1]!) nextChoices.set(id, [{ laneId: id, connectorId: null }]);
-  for (let i = hops.length - 2; i >= 0; i--) {
-    const choices = new Map<string, RouteLeg[]>();
-    for (const id of hops[i]!) {
-      const lane = net.lanes.get(id)!;
-      let bestTail: RouteLeg[] | null = null;
-      let bestConn: string | null = null;
-      for (const cid of lane.connectors) {
-        const c = net.connectors.get(cid)!;
-        const tail = nextChoices.get(c.to);
-        if (tail && (!bestTail || net.lanes.get(c.to)!.index > net.lanes.get(bestTail[0]!.laneId)!.index)) {
-          bestTail = tail;
-          bestConn = cid;
-        }
+  const legs: RouteLeg[] = [];
+  let current = hops[0]![0]!;
+  for (let i = 0; i + 1 < hops.length; i++) {
+    const next = new Set(hops[i + 1]!);
+    // Prefer staying in the current lane; otherwise the nearest lane that has the movement.
+    const here = net.lanes.get(current)!;
+    const candidates = [...hops[i]!].sort((a, b) => Math.abs(net.lanes.get(a)!.index - here.index) - Math.abs(net.lanes.get(b)!.index - here.index));
+    let found: { lane: string; connector: string; to: string } | null = null;
+    for (const laneId of candidates) {
+      const conn = net.lanes.get(laneId)!.connectors.map((id) => net.connectors.get(id)!).find((c) => next.has(c.to));
+      if (conn) {
+        found = { lane: laneId, connector: conn.id, to: conn.to };
+        break;
       }
-      if (bestTail && bestConn) choices.set(id, [{ laneId: id, connectorId: bestConn }, ...bestTail]);
     }
-    if (!choices.size) return null;
-    nextChoices = choices;
+    if (!found) return null;
+    if (found.lane !== current) legs.push({ laneId: current, connectorId: null });
+    legs.push({ laneId: found.lane, connectorId: found.connector });
+    current = found.to;
   }
-  let best: RouteLeg[] | null = null;
-  for (const legs of nextChoices.values()) {
-    if (!best || net.lanes.get(legs[0]!.laneId)!.index > net.lanes.get(best[0]!.laneId)!.index) best = legs;
-  }
-  return best;
+  legs.push({ laneId: current, connectorId: null });
+  return legs;
 }
+
+/** True when leg `i` is a lane change (the route continues in the neighbouring lane of the same road). */
+export const isLaneChange = (legs: readonly RouteLeg[], i: number): boolean => i + 1 < legs.length && legs[i]!.connectorId === null;
 
 /** Total driving distance of a route from `fromS` on the first lane to `toS` on the last (default: its end). */
 export function routeLength(net: RoadNetwork, legs: readonly RouteLeg[], fromS = 0, toS?: number): number {
   let total = 0;
   legs.forEach((leg, i) => {
+    if (isLaneChange(legs, i)) return; // counted with the neighbouring lane
     const lane = net.lanes.get(leg.laneId)!;
     const start = i === 0 ? fromS : 0;
     const end = i === legs.length - 1 && toS !== undefined ? toS : lane.length;
@@ -121,10 +125,17 @@ export function routePolyline(net: RoadNetwork, legs: readonly RouteLeg[], fromS
     const last = out[out.length - 1];
     if (!last || Math.hypot(last.x - p.x, last.z - p.z) > 0.05) out.push({ x: p.x, z: p.z });
   };
+  let resume = fromS;
   legs.forEach((leg, i) => {
     const lane = net.lanes.get(leg.laneId)!;
-    const start = Math.min(lane.length, i === 0 ? fromS : 0);
-    const end = i === legs.length - 1 && toS !== undefined ? Math.min(lane.length, toS) : lane.length;
+    const start = Math.min(lane.length, resume);
+    let end = i === legs.length - 1 && toS !== undefined ? Math.min(lane.length, toS) : lane.length;
+    resume = 0;
+    if (isLaneChange(legs, i)) {
+      // Drift across to the next lane over ~25 m, a little way along.
+      end = Math.min(lane.length - 30, Math.max(start + 12, start));
+      resume = Math.min(lane.length, end + 25);
+    }
     if (end > start) {
       const steps = Math.max(1, Math.ceil((end - start) / spacing));
       for (let k = 0; k <= steps; k++) push(net.lanePose(lane.id, start + ((end - start) * k) / steps));

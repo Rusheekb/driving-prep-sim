@@ -80,6 +80,8 @@ export function createInput(opts: InputOptions): InputManager {
   const releaseAll = (): void => {
     down.clear();
     lookStack.length = 0;
+    kThrottle = 0;
+    kBrake = 0;
     touch.throttle = touch.brake = touch.steer = 0;
     touch.look = 'ahead';
     touch.horn = false;
@@ -88,9 +90,25 @@ export function createInput(opts: InputOptions): InputManager {
   };
   const held = (hold: string): boolean =>
     KEYBOARD_BINDINGS.some((b) => b.target.kind === 'hold' && b.target.hold === hold && b.codes.some((c) => down.has(c)));
-  const keyboardSample = (): DeviceSample => ({
-    throttle: held('throttle') ? 1 : 0,
-    brake: held('brake') ? 1 : 0,
+  let kThrottle = 0;
+  let kBrake = 0;
+  let kLast = performance.now();
+  /** Digital keys become progressive pedals: quick to a moderate level, then building to full while held. */
+  const ramp = (value: number, isDown: boolean, dt: number, quick: number): number => {
+    if (!isDown) return Math.max(0, value - dt * 6);
+    return value < quick ? Math.min(quick, value + dt * 4) : Math.min(1, value + dt * 0.75);
+  };
+  const keyboardSample = (): DeviceSample => {
+    const now = performance.now();
+    const dt = Math.min(0.1, (now - kLast) / 1000);
+    kLast = now;
+    kThrottle = ramp(kThrottle, held('throttle'), dt, 0.55);
+    kBrake = ramp(kBrake, held('brake'), dt, 0.42);
+    return keyboardBase();
+  };
+  const keyboardBase = (): DeviceSample => ({
+    throttle: kThrottle,
+    brake: kBrake,
     steer: (held('steerRight') ? 1 : 0) - (held('steerLeft') ? 1 : 0),
     look: lookStack.length ? lookStack[lookStack.length - 1]!.dir : 'ahead',
     horn: held('horn'),

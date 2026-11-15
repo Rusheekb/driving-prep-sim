@@ -47,6 +47,7 @@ interface Approach {
   waited: number;
   hesitated: boolean;
   crossed: boolean;
+  signalAtLine: SignalColour | null;
 }
 
 interface Traverse {
@@ -155,6 +156,7 @@ export function createRuleMonitor(ctx: SimContext): RuleMonitor {
   let lightsT = 0;
   let wipersT = 0;
   let neutralT = 0;
+  let harshT = 0;
   let lightsFlagged = false;
   let wipersFlagged = false;
   let beltFlagged = false;
@@ -339,7 +341,7 @@ export function createRuleMonitor(ctx: SimContext): RuleMonitor {
   function onCross(a: Approach): void {
     const lane = a.lane;
     const node = net.nodes.get(lane.to)!;
-    const signal = ctx.signals.getState(node.id, lane.arrivalArm);
+    const signal = a.signalAtLine ?? ctx.signals.getState(node.id, lane.arrivalArm);
     traverse = {
       from: lane,
       node,
@@ -515,10 +517,13 @@ export function createRuleMonitor(ctx: SimContext): RuleMonitor {
     /* ---- approach to the end of the lane ---- */
     if (onLane) {
       if (!approach || approach.lane.id !== lane!.id) {
-        approach = { lane: lane!, startOdo: player.odometer, minSpeedZone: Infinity, stillFor: 0, stoppedInZone: false, stoppedPast: false, stopTime: Infinity, waited: 0, hesitated: false, crossed: false };
+        approach = { lane: lane!, startOdo: player.odometer, minSpeedZone: Infinity, stillFor: 0, stoppedInZone: false, stoppedPast: false, stopTime: Infinity, waited: 0, hesitated: false, crossed: false, signalAtLine: null };
       }
       const a = approach;
       const d = lane!.length - (s + half); // front bumper to the line (negative = past it)
+      // Signalling distance is judged from where the car last set off, not from a stop further back.
+      if (speed < 0.15 && d > 8) a.startOdo = player.odometer;
+      if (d < 0 && a.signalAtLine === null) a.signalAtLine = ctx.signals.getState(lane!.to, lane!.arrivalArm);
       if (d < 6 && d > -0.8) {
         a.minSpeedZone = Math.min(a.minSpeedZone, speed);
         a.stillFor = speed < 0.3 ? a.stillFor + dt : 0;
@@ -650,7 +655,8 @@ export function createRuleMonitor(ctx: SimContext): RuleMonitor {
 
     /* ---- positioning ---- */
     if (on('positioning') && !inZone && maneuver !== 'three_point_turn') {
-      const wrong = !!lane && loc.kind === 'lane' && Math.cos(pv.heading - lane.heading) < -0.35 && moving;
+      // Driving ALONG a lane against its direction — merely crossing one at an angle (leaving a driveway, turning) does not count.
+      const wrong = !!lane && loc.kind === 'lane' && Math.cos(pv.heading - lane.heading) < -0.64 && moving;
       if (wrong) {
         wrongSideT += dt;
         if (wrongSideT > 1.5 && !wrongSideFlagged) {
@@ -680,8 +686,9 @@ export function createRuleMonitor(ctx: SimContext): RuleMonitor {
       if (!inZone || (loc.kind === 'zone' && loc.onDriveway)) {
         const sx = Math.sin(pv.heading);
         const cx = Math.cos(pv.heading);
-        const hw = pv.spec.width / 2 - 0.05;
-        for (const f of [half - 0.05, -half + 0.05]) {
+        // Sample a little inside the bodywork so a light graze of the kerb is forgiven.
+        const hw = pv.spec.width / 2 - 0.28;
+        for (const f of [half - 0.3, -half + 0.3]) {
           for (const r of [hw, -hw]) {
             const k = net.locate({ x: pv.x + f * sx - r * cx, z: pv.z + f * cx + r * sx }).kind;
             if (k === 'sidewalk') onKerb = true;
@@ -807,7 +814,9 @@ export function createRuleMonitor(ctx: SimContext): RuleMonitor {
         neutralT = -10;
         report('coasting_in_neutral');
       }
-      if (!emergencyStop && pv.accel < -6.5 && speed > 4 && player.brake > 0.5 && ctx.time - lastCollision > 2) {
+      harshT = pv.accel < -6.5 && speed > 3 && player.brake > 0.5 ? harshT + dt : 0;
+      if (!emergencyStop && harshT > 0.35 && ctx.time - lastCollision > 2) {
+        harshT = -2;
         // Was there a reason to brake hard?
         let reason = false;
         for (const ai of ctx.vehicles) {

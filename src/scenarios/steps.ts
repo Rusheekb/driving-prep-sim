@@ -171,10 +171,9 @@ export function drive(o: DriveOptions): Step {
       } else legs = [...detour.slice(0, -1), ...legs];
       idx = 0;
       started = true;
-    } else if (loc.kind === 'junction' && loc.connector) {
-      const j = legs.findIndex((l, i) => i >= idx && l.connectorId === loc.connector!.id);
-      if (j >= 0) idx = j;
     }
+    // Inside a junction the leg does not change: routes may revisit a junction, and paths
+    // overlap there, so the nearest connector is not a safe way to tell where on the route we are.
   }
 
   return {
@@ -201,7 +200,7 @@ export function drive(o: DriveOptions): Step {
       for (let j = idx; j < legs.length && dist < 230; j++) {
         const leg = legs[j]!;
         const lane = e.net.lanes.get(leg.laneId)!;
-        if (j > idx) dist += lane.length;
+        if (j > idx && !(legs[j - 1] && legs[j - 1]!.connectorId === null)) dist += lane.length;
         if (leg.connectorId) {
           const conn = e.net.connectors.get(leg.connectorId)!;
           const ins = instructionFor(e.net, e.profile, lane, conn);
@@ -253,9 +252,9 @@ export function pullOver(o: { label?: string; coach?: string } = {}): Step {
       const kerbSide = e.net.side === 'right' ? 'right' : 'left';
       if (p.indicator === kerbSide) lastKerbSignal = e.ctx.time;
       const cur = currentLane(e);
-      if (cur && !target) {
-        const s = Math.min(Math.max(cur.s + 34, 22), cur.lane.length - 24);
-        target = { laneId: cur.lane.id, s, lateral: 0 };
+      // A sensible spot for the demo driver: well clear of the junction ahead (else wait for the next road).
+      if (cur && !target && cur.lane.length - cur.s > 52 && cur.s > 6 && e.ctx.player.location.kind === 'lane') {
+        target = { laneId: cur.lane.id, s: cur.s + 28, lateral: 0 };
       }
       still = Math.abs(p.vehicle.speed) < 0.15 ? still + dt : 0;
       if (still < 1 || !cur) return 'running';
@@ -560,7 +559,7 @@ export function emergencyStop(o: { coach?: string } = {}): Step {
           }
         }
       } else if (phase === 'stopping') {
-        if (!reacted && p.brake > 0.85) {
+        if (!reacted && p.brake > 0.4) {
           reacted = true;
           if (e.ctx.time - cueAt > 1.0) e.monitor.report('emergency_stop_slow', { force: true });
         }
@@ -582,7 +581,7 @@ export function emergencyStop(o: { coach?: string } = {}): Step {
       e.state.activeManeuver = null;
       e.state.coach = null;
     },
-    auto: { kind: 'wait' },
+    auto: { kind: 'route', legs: () => null, stopAt: () => null },
   };
 }
 
